@@ -1,0 +1,106 @@
+/* Reports page */
+.reports-page {
+  min-height: calc(100vh - 68px);
+  padding-bottom: 72px;
+}
+
+.reports-page-header {
+  padding: 48px 0 36px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 48px;
+}
+
+.reports-page-header h1 {
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, #ffffff 30%, #c8d0dc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.reports-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+/* Form card */
+.report-form-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Feed column */
+.reports-feed-col h2 {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+
+.reports-feed-col .section-sub {
+  margin-bottom: 24px;
+}
+
+/* Error page */
+.error-page {
+  min-height: calc(100vh - 68px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.error-content {
+  max-width: 480px;
+}
+
+.error-bolt {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 24px;
+  color: var(--accent-fault);
+  filter: drop-shadow(0 0 16px var(--accent-fault-glow));
+}
+
+.error-bolt svg { width: 100%; height: 100%; }
+
+.error-code {
+  font-family: var(--font-mono);
+  font-size: 5rem;
+  font-weight: 700;
+  color: var(--accent-volt);
+  text-shadow: 0 0 40px var(--accent-volt-glow);
+  letter-spacing: -0.05em;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.error-title {
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.error-desc {
+  font-size: 1rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  max-width: 38ch;
+  margin: 0 auto 32px;
+}
+
+@media (max-width: 860px) {
+  .reports-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .report-form-card { padding: 20px; }
+}

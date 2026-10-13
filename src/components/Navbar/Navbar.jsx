@@ -1,37 +1,60 @@
-import {useState} from 'react'
-import './navbar.css'
-export default function Navbar () { 
-  const [isMenu,setIsMenu] = useState(false)
-  const toggle = () => {
-    setIsMenu(!isMenu)
-  }
-  return (
-    <nav className="navbar">
-    <div className="nav-container">
-      <a href="#" className="logo">
-        <div className="logo-icon">
-          <i className="ph-bold ph-lightning"></i>
-        </div>
-        <span className="logo-text">Volt<span className="text-blue">fix</span></span>
-      </a>
-      <div className="nav-links">
-        <a href="#">Home</a>
-        <a href="#">Services</a>
-        <a href="#">Projects</a>
-        <a href="#">About</a>
-      </div>
-      <a href="#" className="btn-primary desktop-only">Sign In</a>
-      <button className="mobile-toggle" id="mobile-toggle" onClick = {toggle}>
-        <i className={isMenu?'ph ph-x' : 'ph ph-list'} id="menu-icon">≡</i>
-      </button>
+import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import './navbar.css';
 
-    </div>
-    <div className={`mobile-menu ${isMenu? 'active' : ''}`} id="mobile-menu">
-      <a href="#" className="active">Home</a>
-      <a href="#">Services</a>
-      <a href="#">Projects</a>
-      <a href="#">About</a>
-      <a href="#" className="btn-primary mobile-btn">Sign Up</a>
-    </div>
-  </nav>)
+export default function Navbar() {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  const navLinks = [
+    { to: '/stations', label: 'Find chargers', hash: '' },
+    { to: '/#how', label: 'How it works', hash: 'how' },
+    { to: '/reports', label: 'Report an issue', hash: '' },
+    { to: '/#feed', label: 'Recent reports', hash: 'feed' },
+  ];
+
+  return (
+    <header className="site-header">
+      <div className="wrap header-inner">
+        {/* Logo */}
+        <Link to="/" className="nav-logo" onClick={() => setIsOpen(false)}>
+          <span className="logo-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 2 L4 14 H11 L9 22 L20 8 H13 L13 2 Z" fill="currentColor" />
+            </svg>
+          </span>
+          Voltfix
+        </Link>
+
+        {/* Desktop Nav */}
+        <nav className={`main-nav${isOpen ? ' is-open' : ''}`} id="main-nav">
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              to={link.to}
+              onClick={() => setIsOpen(false)}
+            >
+              {link.label}
+            </Link>
+          ))}
+          <Link to="/auth" className="sign-in-btn" onClick={() => setIsOpen(false)}>
+            Sign In
+          </Link>
+        </nav>
+
+        {/* Mobile toggle */}
+        <button
+          className={`nav-toggle${isOpen ? ' is-open' : ''}`}
+          aria-expanded={isOpen}
+          aria-controls="main-nav"
+          aria-label="Toggle menu"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+  );
 }
