@@ -1,0 +1,166 @@
+/* --- CSS Reset & Variables --- */
+:root {
+  --primary-blue: #2563eb;
+  --primary-blue-hover: #1d4ed8;
+  --text-dark: #111827;
+  --text-gray: #4b5563;
+  --bg-light: #f9fafb;
+  --white: #ffffff;
+  --border-color: #e5e7eb;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+body {
+  background-color: var(--bg-light);
+  padding-top: 80px; /* Space for fixed navbar */
+}
+
+/* --- Navbar Container --- */
+.navbar {
+  background-color: var(--white);
+  border-bottom: 1px solid var(--border-color);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 50;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.nav-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  height: 64px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* --- Logo --- */
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary-blue);
+  color: var(--white);
+  border-radius: 6px;
+  font-size: 1.25rem;
+}
+
+.logo-text {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: var(--text-dark);
+  letter-spacing: -0.025em;
+}
+
+.text-blue {
+  color: var(--primary-blue);
+}
+
+/* --- Desktop Links --- */
+.nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--text-gray);
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-links a:hover {
+  color: var(--primary-blue);
+}
+
+/* --- Button --- */
+.btn-primary {
+  background-color: var(--primary-blue);
+  color: var(--white);
+  text-decoration: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.3);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-blue-hover);
+}
+
+/* --- Mobile Menu & Toggle --- */
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-gray);
+  cursor: pointer;
+}
+
+.mobile-menu {
+  display: none;
+  background-color: var(--white);
+  border-top: 1px solid var(--border-color);
+  padding: 0.5rem 1rem 1rem 1rem;
+}
+
+.mobile-menu.active {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.mobile-menu a {
+  text-decoration: none;
+  color: var(--text-gray);
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.mobile-menu a:hover {
+  background-color: var(--bg-light);
+  color: var(--primary-blue);
+}
+
+.mobile-menu a.active {
+  color: var(--primary-blue);
+  background-color: #eff6ff;
+}
+
+.mobile-btn {
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* --- Responsive Breakpoints --- */
+@media (max-width: 768px) {
+  .nav-links, .desktop-only {
+    display: none;
+  }
+  
+  .mobile-toggle {
+    display: block;
+  }
+}
