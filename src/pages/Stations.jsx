@@ -1,61 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar/Navbar';
 import './stations.css';
 import './home.css';
 
-const ALL_STATIONS = [
-  {
-    id: 1,
-    name: 'NIT Warangal Campus Hub',
-    status: 'available',
-    address: 'National Institute of Technology Campus, Fatima Nagar, Warangal, Telangana 506004',
-    connectors: ['CCS', 'Type 2'],
-    network: 'Hitachi Energy',
-  },
-  {
-    id: 2,
-    name: 'Ather — Warangal Charging Station',
-    status: 'in-use',
-    address: 'No 1-1-506, REC Old, Waddepally, Hanumakonda, Telangana 506004',
-    connectors: ['CCS'],
-    network: 'Ather Grid',
-  },
-  {
-    id: 3,
-    name: 'Tata Power EV — Warangal Mall',
-    status: 'fault',
-    address: '3-6-101, Hanamkonda, Warangal, Telangana 506001',
-    connectors: ['CCS', 'CHAdeMO', 'Type 2'],
-    network: 'Tata Power EV',
-  },
-  {
-    id: 4,
-    name: 'Reliance BP Charge — NH-163',
-    status: 'available',
-    address: 'NH-163, Bhimaram, Warangal, Telangana 506011',
-    connectors: ['Type 2'],
-    network: 'Reliance BP Charge',
-  },
-  {
-    id: 5,
-    name: 'BPCL EVPIN — Kazipet',
-    status: 'available',
-    address: 'BPCL Petrol Pump, Kazipet, Warangal, Telangana 506003',
-    connectors: ['CCS', 'CHAdeMO'],
-    network: 'BPCL EV',
-  },
-];
-
-const STATUS_LABEL = { available: 'Available', 'in-use': 'In use', fault: 'Fault' };
+const STATUS_LABEL = { available: 'Available', 'in-use': 'In use', fault: 'Fault', offline: 'Offline', maintenance: 'Maintenance' };
 const FILTERS = ['all', 'available', 'in-use', 'fault'];
 const FILTER_LABELS = { all: 'All', available: 'Available', 'in-use': 'In use', fault: 'Fault reported' };
 
 export default function Stations() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [stations, setStations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const filtered = ALL_STATIONS.filter((s) => {
+  useEffect(() => {
+    const fetchStations = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/stations/literallyAll');
+        if (!response.ok) {
+          throw new Error(`Failed to load stations (HTTP ${response.status})`);
+        }
+        const data = await response.json();
+        setStations(data.data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStations();
+  }, []);
+
+  const filtered = stations.filter((s) => {
     const matchesFilter = activeFilter === 'all' || s.status === activeFilter;
     const q = searchQuery.toLowerCase();
     const matchesSearch =
@@ -105,41 +84,53 @@ export default function Stations() {
             ))}
           </div>
 
+          {/* States */}
+          {loading && (
+            <div className="stations-state-msg">Loading stations…</div>
+          )}
+          {error && (
+            <div className="stations-state-msg stations-state-msg--error">
+              ⚠ {error}
+            </div>
+          )}
+
           {/* Grid */}
-          <ul className="station-grid" style={{ paddingBottom: '72px' }}>
-            {filtered.length === 0 ? (
-              <li className="station-empty">No stations match your search.</li>
-            ) : (
-              filtered.map((station) => (
-                <li key={station.id} className="station-card">
-                  <div className="station-card-top">
-                    <h3>{station.name}</h3>
-                    <span className={`status status--${station.status}`}>
-                      <span className="status-dot" />
-                      {STATUS_LABEL[station.status]}
-                    </span>
-                  </div>
+          {!loading && !error && (
+            <ul className="station-grid" style={{ paddingBottom: '72px' }}>
+              {filtered.length === 0 ? (
+                <li className="station-empty">No stations match your search.</li>
+              ) : (
+                filtered.map((station) => (
+                  <li key={station._id} className="station-card">
+                    <div className="station-card-top">
+                      <h3>{station.name}</h3>
+                      <span className={`status status--${station.status}`}>
+                        <span className="status-dot" />
+                        {STATUS_LABEL[station.status] ?? station.status}
+                      </span>
+                    </div>
 
-                  <p className="station-address">{station.address}</p>
+                    <p className="station-address">{station.address}</p>
 
-                  <div className="connector-tags">
-                    {station.connectors.map((c) => (
-                      <span key={c} className="connector-tag">{c}</span>
-                    ))}
-                  </div>
+                    <div className="connector-tags">
+                      {station.connectors.map((c) => (
+                        <span key={c} className="connector-tag">{c}</span>
+                      ))}
+                    </div>
 
-                  <div className="station-card-footer">
-                    <span className="station-network">
-                      Network: <strong>{station.network}</strong>
-                    </span>
-                    <Link to="/reports" className="report-link">
-                      Report issue →
-                    </Link>
-                  </div>
-                </li>
-              ))
-            )}
-          </ul>
+                    <div className="station-card-footer">
+                      <span className="station-network">
+                        Network: <strong>{station.network}</strong>
+                      </span>
+                      <Link to="/reports" className="report-link">
+                        Report issue →
+                      </Link>
+                    </div>
+                  </li>
+                ))
+              )}
+            </ul>
+          )}
         </div>
       </div>
 

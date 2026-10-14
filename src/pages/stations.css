@@ -2,6 +2,7 @@
 
 .stations-page {
   min-height: calc(100vh - 68px);
+  padding-bottom: 72px;
 }
 
 /* The Stations page reuses the home.css station-card styles
@@ -37,4 +38,16 @@
   flex: 1;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
+}
+
+/* Loading / error state messages */
+.stations-state-msg {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.stations-state-msg--error {
+  color: var(--accent-fault);
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar/Navbar';
 import './auth.css';
 
@@ -38,30 +38,66 @@ const BoltLogo = () => (
 );
 
 export default function Auth() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('signin');
   const [status, setStatus] = useState({ text: '', isError: false });
+  const [loading, setLoading] = useState(false);
 
   const [signinForm, setSigninForm] = useState({ email: '', password: '' });
   const [signupForm, setSignupForm] = useState({ name: '', email: '', password: '' });
 
-  const handleSignin = (e) => {
+  const handleSignin = async (e) => {
     e.preventDefault();
     if (!signinForm.email || !signinForm.password) {
       setStatus({ text: 'Please fill in all fields.', isError: true });
       return;
     }
+    setLoading(true);
     setStatus({ text: 'Signing in…', isError: false });
-    // TODO: wire up real auth
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: signinForm.email, password: signinForm.password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+      if (data.token) localStorage.setItem('voltfix_token', data.token);
+      setStatus({ text: '✓ Signed in! Redirecting…', isError: false });
+      setTimeout(() => navigate('/'), 800);
+    } catch (err) {
+      setStatus({ text: err.message, isError: true });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
     if (!signupForm.name || !signupForm.email || !signupForm.password) {
       setStatus({ text: 'Please fill in all fields.', isError: true });
       return;
     }
+    setLoading(true);
     setStatus({ text: 'Creating account…', isError: false });
-    // TODO: wire up real auth
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name: signupForm.name, email: signupForm.email, password: signupForm.password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+      if (data.token) localStorage.setItem('voltfix_token', data.token);
+      setStatus({ text: '✓ Account created! Redirecting…', isError: false });
+      setTimeout(() => navigate('/'), 800);
+    } catch (err) {
+      setStatus({ text: err.message, isError: true });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -141,8 +177,8 @@ export default function Auth() {
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary btn-glow">
-                Sign In <IconArrow />
+              <button type="submit" className="btn btn-primary btn-glow" disabled={loading}>
+                {loading ? 'Signing in…' : <><span>Sign In</span> <IconArrow /></>}
               </button>
 
               {status.text && (
@@ -204,8 +240,8 @@ export default function Auth() {
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary btn-glow">
-                Create account <IconArrow />
+              <button type="submit" className="btn btn-primary btn-glow" disabled={loading}>
+                {loading ? 'Creating account…' : <><span>Create account</span> <IconArrow /></>}
               </button>
 
               {status.text && (

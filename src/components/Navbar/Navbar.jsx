@@ -7,10 +7,9 @@ export default function Navbar() {
   const location = useLocation();
 
   const navLinks = [
-    { to: '/stations', label: 'Find chargers', hash: '' },
-    { to: '/#how', label: 'How it works', hash: 'how' },
-    { to: '/reports', label: 'Report an issue', hash: '' },
-    { to: '/#feed', label: 'Recent reports', hash: 'feed' },
+    { to: '/stations', label: 'Stations' },
+    { to: '/reports', label: 'Reports' },
+    { to: '/stats', label: 'Stats' },
   ];
 
   return (
