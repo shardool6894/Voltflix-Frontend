@@ -32,16 +32,17 @@ export default function Home() {
 
             <div className="hero-panel-wrap">
               <div className="panel">
+                <div className="panel-head">Network snapshot</div>
                 <div className="panel-row">
-                  <span className="panel-label">stations tracked</span>
+                  <span className="panel-label">Stations tracked</span>
                   <span className="panel-value">—</span>
                 </div>
                 <div className="panel-row">
-                  <span className="panel-label">reported today</span>
+                  <span className="panel-label">Reported today</span>
                   <span className="panel-value panel-value--fault">—</span>
                 </div>
                 <div className="panel-row">
-                  <span className="panel-label">fixed this week</span>
+                  <span className="panel-label">Fixed this week</span>
                   <span className="panel-value panel-value--live">—</span>
                 </div>
               </div>
