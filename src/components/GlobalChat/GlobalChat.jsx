@@ -45,6 +45,7 @@ export default function GlobalChat() {
     })
     return () => {
       if(socketRef.current){
+        socketRef.current.removeAllListeners();
         socketRef.current.disconnect();
       }
     }
