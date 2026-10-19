@@ -4,6 +4,7 @@ import Auth from '../pages/Auth.jsx';
 import Stations from '../pages/Stations.jsx';
 import Reports from '../pages/Reports.jsx';
 import Stats from '../pages/Stats.jsx';
+import Profile from '../pages/Profile.jsx';
 import ErrorPage from '../pages/Error.jsx';
 export default function Router () { 
     return (
@@ -14,6 +15,7 @@ export default function Router () {
                 <Route path = '/stations' element = {<Stations/>}/>
                 <Route path = '/reports' element = {<Reports/>}/>
                 <Route path = '/stats' element = {<Stats/>}/>
+                <Route path = '/profile' element = {<Profile/>}/>
                 <Route path = '*' element = {<ErrorPage/>}/>
             </Routes>
         </BrowserRouter>

@@ -1,9 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { io } from 'socket.io-client';
 import Navbar from '../components/Navbar/Navbar';
-import GlobalChat from '../components/GlobalChat/GlobalChat';
 import './pages.css';
 import './home.css';
+
+const CHAT_ROOM = 'global';
+// Dev: same-origin, proxied to the backend by vite.config.js. Prod: set VITE_SOCKET_URL.
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || undefined;
+
+const formatClock = (iso) =>
+  new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
 export default function Reports() {
   /* ── Report form state ─────────────────────────── */
@@ -17,6 +24,15 @@ export default function Reports() {
   const [feed, setFeed] = useState([]);
   const [feedLoading, setFeedLoading] = useState(true);
   const [feedError, setFeedError] = useState(null);
+
+  /* ── Global chat state ─────────────────────────── */
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatConnected, setChatConnected] = useState(false);
+  const socketRef = useRef(null);
+  const chatMsgId = useRef(0);
+  const [chatInput, setChatInput] = useState('');
+  const [chatName, setChatName] = useState('');
+  const chatLogRef = useRef(null);
 
   /* ── Data fetching ─────────────────────────────── */
   const fetchFeed = async () => {
@@ -34,6 +50,38 @@ export default function Reports() {
   };
 
   useEffect(() => { fetchFeed(); }, []);
+
+  /* ── Chat socket ───────────────────────────────── */
+  useEffect(() => {
+    const socket = io(SOCKET_URL);
+    socketRef.current = socket;
+
+    // 'connect' fires again after every reconnect, so we always re-join the room.
+    socket.on('connect', () => {
+      setChatConnected(true);
+      socket.emit('joinChat', { targetUserId: CHAT_ROOM });
+    });
+    socket.on('disconnect', () => setChatConnected(false));
+    socket.on('receiveMessage', (msg) => {
+      setChatMessages((prev) => [...prev, {
+        id: ++chatMsgId.current,
+        author: msg.existingUserName || 'Anonymous',
+        text: msg.message,
+        time: formatClock(msg.time),
+        isSystem: false,
+      }]);
+    });
+
+    return () => {
+      socket.removeAllListeners();
+      socket.disconnect();
+      socketRef.current = null;
+    };
+  }, []);
+  useEffect(() => {
+    const log = chatLogRef.current;
+    if (log) log.scrollTop = log.scrollHeight;
+  }, [chatMessages]);
 
   /* ── Handlers ──────────────────────────────────── */
   const handleChange = (e) => {
@@ -56,7 +104,7 @@ export default function Reports() {
       if (formData.reporterName) body.append('reporterName', formData.reporterName);
       if (formData.photo) body.append('photo', formData.photo);
 
-      const res = await fetch('/api/reports/', { method: 'POST', body });
+      const res = await fetch('/api/reports/', { method: 'POST', body, credentials: 'include' });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || `HTTP ${res.status}`);
@@ -72,6 +120,29 @@ export default function Reports() {
     }
   };
 
+  const handleChatSend = (e) => {
+    e.preventDefault();
+    const text = chatInput.trim();
+    const socket = socketRef.current;
+    if (!text || !socket || !socket.connected) return;
+
+    const author = chatName.trim() || 'Anonymous';
+    socket.emit('sendMessage', {
+      targetUserId: CHAT_ROOM,
+      existingUserName: author,
+      message: text,
+    });
+    // The server broadcasts to everyone else, so add our own message locally.
+    setChatMessages((prev) => [...prev, {
+      id: ++chatMsgId.current,
+      author,
+      text,
+      time: formatClock(new Date().toISOString()),
+      isSystem: false,
+    }]);
+    setChatInput('');
+  };
+
   const formatTime = (iso) => {
     if (!iso) return '';
     const d = Date.now() - new Date(iso).getTime();
@@ -82,6 +153,8 @@ export default function Reports() {
     if (h < 24) return `${h} hr${h > 1 ? 's' : ''} ago`;
     return `${Math.floor(h / 24)}d ago`;
   };
+
+  const chatCount = chatMessages.filter((m) => !m.isSystem).length;
 
   return (
     <>
@@ -155,7 +228,65 @@ export default function Reports() {
             </form>
 
             {/* Right: Global chat */}
-            <GlobalChat />
+            <div className="chat-panel">
+              <div className="chat-panel-header">
+                <h3>Global chat</h3>
+                <span className="chat-count">
+                  {chatConnected
+                    ? `${chatCount} message${chatCount === 1 ? '' : 's'}`
+                    : 'Connecting…'}
+                </span>
+              </div>
+
+              <div className="chat-messages" ref={chatLogRef} role="log" aria-live="polite">
+                {chatMessages.length === 0 && (
+                  <p className="chat-empty">
+                    {chatConnected
+                      ? 'No messages yet. Messages from drivers on this page appear here as they arrive.'
+                      : 'Connecting to chat…'}
+                  </p>
+                )}
+                {chatMessages.map((msg) => (
+                  <div key={msg.id} className={`chat-msg${msg.isSystem ? ' chat-msg--system' : ''}`}>
+                    <div className="chat-msg-meta">
+                      <span className="chat-author">{msg.isSystem ? 'System notice' : msg.author}</span>
+                      <span className="chat-time">{msg.time}</span>
+                    </div>
+                    <p className="chat-text">{msg.text}</p>
+                  </div>
+                ))}
+              </div>
+
+              <form className="chat-compose" onSubmit={handleChatSend}>
+                <label className="sr-only" htmlFor="chat-name">Display name (optional)</label>
+                <input
+                  id="chat-name"
+                  className="chat-name-input"
+                  type="text"
+                  placeholder="Display name (optional)"
+                  value={chatName}
+                  onChange={(e) => setChatName(e.target.value)}
+                  maxLength={32}
+                  autoComplete="off"
+                />
+                <div className="chat-input-row">
+                  <label className="sr-only" htmlFor="chat-message">Message</label>
+                  <input
+                    id="chat-message"
+                    className="chat-text-input"
+                    type="text"
+                    placeholder="Write a message to other drivers"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    maxLength={280}
+                    autoComplete="off"
+                  />
+                  <button type="submit" className="btn btn-primary chat-send-btn" disabled={!chatConnected || !chatInput.trim()}>
+                    Send
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
 
           {/* ── Feed ────────────────────────────── */}

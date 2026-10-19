@@ -4,12 +4,7 @@ import {useNavigate} from 'react-router-dom';
 import {createSocketConnection} from '../../context/socketConnections';
 export default function GlobalChat() {
   const navigate = useNavigate();
-  const [chatMessages, setChatMessages] = useState([
-    { id: 1, author: 'Ravi K.', text: 'Anyone tried the Ather hub near Kazipet today?', time: '14 min ago', isSystem: false },
-    { id: 2, author: 'Priya M.', text: 'Yeah it was down this morning, back up now.', time: '11 min ago', isSystem: false },
-    { id: 3, author: 'System', text: 'New report: Not charging @ NIT Warangal Campus Hub', time: '7 min ago', isSystem: true },
-    { id: 4, author: 'Anon', text: 'Bay 3 at Riverside is blocked by an ICE vehicle again.', time: '3 min ago', isSystem: false },
-  ]);
+  const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [chatName, setChatName] = useState('');
   const socketRef = useRef(null);
@@ -28,7 +23,29 @@ export default function GlobalChat() {
   const existingUserId = user?._id;
   const existingUserName = user?.name;
   const targetUserId = "global-chat"; 
+  const getAllMessages = async () => {
+    try {
+      const response = await fetch('/api/messages/');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log(data.data)
+      const formattedMessages = data.data.map(msg => ({
+        id: msg._id, 
+        author: msg.existingUserName || 'Anonymous',
+        text: msg.message,
+        time: msg.time,
+        isSystem: false
+      }));
+      setChatMessages(formattedMessages);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+    }
+  };
+
   useEffect(() => {
+    getAllMessages();
     if (localStorage.getItem('voltfix_token') && !user) navigate('/auth');
   }, [user, navigate]);
   useEffect(()=>{
